@@ -83,6 +83,19 @@ action :restart do
   end
 end
 
+action :reload do
+  case current_resource.state
+  when 'UNAVAILABLE'
+    raise "Supervisor service #{new_resource.name} cannot be reloaded because it does not exist"
+  else
+    converge_by("Reloading #{ new_resource }") do
+      if not supervisorctl('reload')
+        raise "Supervisor service #{new_resource.name} was unable to be started"
+      end
+    end
+  end
+end
+
 def enable_service
   e = execute "supervisorctl update" do
     action :nothing
